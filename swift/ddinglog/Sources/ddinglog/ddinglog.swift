@@ -5,7 +5,7 @@ import CoreLocation
 public enum DdingLog {
     
     private static let subsystem = Bundle.main.bundleIdentifier ?? ""
-    private static let logger = Logger(subsystem: subsystem, category: "LLL")
+    private static let logger = Logger(subsystem: subsystem, category: "ddinglog")
     
     public static func log(_ message: @autoclosure () -> String) {
         let str = message()
@@ -53,7 +53,7 @@ public enum DdingLog {
             let query = "\(urlComponents?.query ?? "")"
             let host = "\(urlComponents?.host ?? "")"
             
-            var output = "[REQ:\(abs(taskid) % 1000)] "
+            var output = "[REQ:\(abs(taskid) % 100000)] "
             output += """
            \(method) \(path)?\(query) HTTP/1.1 \n
            HOST: \(host)\n
@@ -78,7 +78,7 @@ public enum DdingLog {
             let components = NSURLComponents(string: urlString ?? "")
             let path = "\(components?.path ?? "")"
             let query = "\(components?.query ?? "")"
-            var output = "[RES:\(abs(taskid) % 1000)] "
+            var output = "[RES:\(abs(taskid) % 100000)] "
     //        if let urlString = urlString {
     //            output += "\(urlString)"
     //            output += "\n\n"

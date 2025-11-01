@@ -1,6 +1,18 @@
 import Testing
+import Foundation
 @testable import ddinglog
 
-@Test func example() async throws {
-    // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+@Suite("DdingLog URLSession Tests")
+struct DdingLogTests {
+
+    @Test("Test for test")
+    func testExample() throws {
+        #expect(true)
+    }
+}
+
+// Custom error type for testing
+enum TestError: Error {
+    case invalidURL
+    case networkError
 }
