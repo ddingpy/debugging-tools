@@ -2,10 +2,11 @@ import Foundation
 import os
 import CoreLocation
 
+
 public enum LLL {
     
-    private static let subsystem = Bundle.main.bundleIdentifier ?? ""
-    private static let logger = Logger(subsystem: subsystem, category: "LLL")
+    static let subsystem = Bundle.main.bundleIdentifier ?? ""
+    static let logger = Logger(subsystem: subsystem, category: "LLL")
     
     public static func log(_ message: @autoclosure () -> String) {
         let str = message()
@@ -42,69 +43,6 @@ public enum LLL {
             }
         }
         task.resume()
-    }
-    
-    public static func network(request: URLRequest, taskid: Int = 0) {
-        let message = { () -> String in
-            let urlAsString = request.url?.absoluteString ?? ""
-            let urlComponents = URLComponents(string: urlAsString)
-            let method = request.httpMethod != nil ? "\(request.httpMethod ?? "")" : ""
-            let path = "\(urlComponents?.path ?? "")"
-            let query = "\(urlComponents?.query ?? "")"
-            let host = "\(urlComponents?.host ?? "")"
-            
-            var output = "[REQ:\(abs(taskid) % 100000)] "
-            output += """
-           \(method) \(path)?\(query) HTTP/1.1 \n
-           HOST: \(host)\n
-           """
-            for (key, value) in request.allHTTPHeaderFields ?? [:] {
-                output += "\(key): \(value) \n"
-            }
-            if let body = request.httpBody {
-                output += "\n \(String(data: body, encoding: .utf8) ?? "")"
-            }
-            
-            output += "\n - - - - - - - - - -  END - - - - - - - - - - \n"
-            return output
-        }()
-        
-        logger.log("\(message)")
-    }
-    
-    public static func network(response: URLResponse?, data: Data?, error: Error?, taskid: Int = 0) {
-        let message = { () -> String in
-            let urlString = response?.url?.absoluteString
-            let components = NSURLComponents(string: urlString ?? "")
-            let path = "\(components?.path ?? "")"
-            let query = "\(components?.query ?? "")"
-            var output = "[RES:\(abs(taskid) % 100000)] "
-    //        if let urlString = urlString {
-    //            output += "\(urlString)"
-    //            output += "\n\n"
-    //        }
-            if let response = response as? HTTPURLResponse {
-                output += "HTTP \(response.statusCode) \(path)?\(query)\n"
-            }
-            if let host = components?.host {
-                output += "Host: \(host)\n"
-            }
-            if let response = response as? HTTPURLResponse {
-                for (key, value) in response.allHeaderFields {
-                    output += "\(key): \(value)\n"
-                }
-            }
-            if let body = data {
-                output += "\n\(String(data: body, encoding: .utf8) ?? "")\n"
-            }
-            if let error {
-                output += "\nError: \(error.localizedDescription)\n"
-            }
-            output += "\n - - - - - - - - - -  END - - - - - - - - - - \n"
-            return output
-        }()
-        
-        logger.log("\(message)")
     }
     
     public static func uploadGpx(_ locations: [CLLocation]) async throws -> String {

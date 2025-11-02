@@ -27,12 +27,7 @@ struct LLLNetworkTests {
         
         // Perform the actual network request
         do {
-            
-            LLL.network(request: request, taskid: request.hashValue)
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            LLL.network(response: response, data: data, error: nil, taskid: request.hashValue)
+            let (data, response) = try await URLSession.shared.dataLLL(for: request)
             
             // Verify response
             #expect(response is HTTPURLResponse)
@@ -54,8 +49,6 @@ struct LLLNetworkTests {
             // If the network request fails (e.g., no internet), we'll skip this test
             // In a real app, you might want to handle this differently
             print("Network test skipped due to connectivity: \(error)")
-            
-            LLL.network(response: nil, data: nil, error: error as NSError, taskid: request.hashValue)
         }
     }
     
@@ -111,8 +104,7 @@ struct LLLNetworkTests {
             for (index, request) in requests.enumerated() {
                 group.addTask {
                     do {
-                        LLL.network(request: request, taskid: index)
-                        let result = try await URLSession.shared.data(for: request)
+                        let result = try await URLSession.shared.dataLLL(for: request)
                         return (index, .success(result))
                     } catch {
                         return (index, .failure(error))
@@ -124,14 +116,6 @@ struct LLLNetworkTests {
             
             for await (index, result) in group {
                 results[index] = result
-                
-                // Handle the Result type properly
-                switch result {
-                case .success((let data, let response)):
-                    LLL.network(response: response, data: data, error: nil, taskid: index)
-                case .failure(let error):
-                    LLL.network(response: nil, data: nil, error: error, taskid: index)
-                }
             }
             
             // Verify all requests completed (either successfully or with error)
@@ -156,16 +140,12 @@ struct LLLNetworkTests {
         request.timeoutInterval = 1.0 // 1 second timeout for a 5 second delay
         
         do {
-            LLL.network(request: request, taskid: request.hashValue)
-            let _ = try await URLSession.shared.data(for: request)
-            LLL.network(response: nil, data: nil, error: nil, taskid: request.hashValue)
+            let _ = try await URLSession.shared.dataLLL(for: request)
             // If this succeeds, the test might be running too fast or the server responded quickly
             // This is not necessarily a failure
         } catch {
             // We expect a timeout error
             let nsError = error as NSError
-            
-            LLL.network(response: nil, data: nil, error: error, taskid: request.hashValue)
             
             #expect(nsError.domain == NSURLErrorDomain)
             #expect(nsError.code == NSURLErrorTimedOut || nsError.code == NSURLErrorCannotConnectToHost)
