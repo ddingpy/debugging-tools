@@ -1,5 +1,18 @@
 import Foundation
 
+actor IndexStore {
+    static let shared = IndexStore()
+    
+    private var lastIndex = 0
+    
+    private init() { }
+    
+    func getNextIndex() -> Int {
+        lastIndex += 1
+        return lastIndex
+    }
+}
+
 extension DateFormatter {
     static let iso8601WithMilliseconds: DateFormatter = {
         let formatter = DateFormatter()
@@ -18,7 +31,9 @@ extension URLSession {
         
         let datetimestring = DateFormatter.iso8601WithMilliseconds.string(from: Date(timeIntervalSinceReferenceDate: startTime))
         
-        var log = getString(request: req)
+        let index = await IndexStore.shared.getNextIndex()
+        
+        var log = getString(request: req, index: index)
         log += "\n - - - - - - - - - -  END REQUEST (\(datetimestring)) - - - - - - - - - - \n"
         
         do {
@@ -38,7 +53,7 @@ extension URLSession {
         }
     }
     
-    private func getString(request: URLRequest) -> String {
+    private func getString(request: URLRequest, index: Int) -> String {
         let message = { () -> String in
             let urlAsString = request.url?.absoluteString ?? ""
             let urlComponents = URLComponents(string: urlAsString)
@@ -46,7 +61,7 @@ extension URLSession {
             let path = "\(urlComponents?.path ?? "")"
             let host = "\(urlComponents?.host ?? "")"
             
-            var output = "\(method) \(urlAsString)\n"
+            var output = "\(index) \(method) \(urlAsString)\n"
             
             output += """
 HOST: \(host)
