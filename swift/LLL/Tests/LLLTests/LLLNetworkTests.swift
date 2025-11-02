@@ -8,7 +8,7 @@ struct LLLNetworkTests {
     @Test("Test URLSession data task creation and execution")
     func testURLSessionIntegration() async throws {
         // Create a mock server response
-        let expectedResponse = "{\"status\":\"success\",\"message\":\"Log received\"}"
+//        let expectedResponse = "{\"status\":\"success\",\"message\":\"Log received\"}"
 //        let expectedData = expectedResponse.data(using: .utf8)!
         
         // Create URL and request similar to what DdingLog.logf creates

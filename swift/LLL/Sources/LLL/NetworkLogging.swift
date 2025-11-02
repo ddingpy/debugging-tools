@@ -1,15 +1,38 @@
 import Foundation
 
+extension DateFormatter {
+    static let iso8601WithMilliseconds: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+}
+
 extension URLSession {
-    func dataLLL(for req: URLRequest) async throws -> (Data, URLResponse) {
+    
+    public func dataLLL(for req: URLRequest) async throws -> (Data, URLResponse) {
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        let datetimestring = DateFormatter.iso8601WithMilliseconds.string(from: Date(timeIntervalSinceReferenceDate: startTime))
+        
         var log = getString(request: req)
+        log += "\n - - - - - - - - - -  END REQUEST (\(datetimestring)) - - - - - - - - - - \n"
+        
         do {
             let (data, res) = try await self.data(for: req)
+            let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
             log += getString(error: nil, response: res, data: data)
+            log += "\n - - - - - - - - - -  END RESPONSE (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
+            
             LLL.log(log)
             return (data, res)
         } catch {
-            log += getString(error: error, response: nil)
+            let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
+            log += getString(error: error, response: nil, elapsedTime: elapsedTime)
+            log += "\n - - - - - - - - - -  END ERROR (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
             LLL.log(log)
             throw error
         }
@@ -42,17 +65,20 @@ PATH: \(path)
             if let body = request.httpBody {
                 output += "\n \(String(data: body, encoding: .utf8) ?? "")"
             }
-            
-            output += "\n - - - - - - - - - -  END REQUEST - - - - - - - - - - \n"
             return output
         }()
         
         return message
     }
     
-    private func getString(error: Error?, response: URLResponse?, data: Data? = nil) -> String {
+    private func getString(error: Error?, response: URLResponse?, data: Data? = nil, elapsedTime: TimeInterval? = nil) -> String {
         let message = { () -> String in
             var output = ""
+            
+            if let elapsedTime = elapsedTime {
+                output += "ELAPSED TIME: \(String(format: "%.3f", elapsedTime))s\n"
+            }
+            
             if let response = response as? HTTPURLResponse {
                 output += "HTTP \(response.statusCode)\n"
             }
@@ -63,11 +89,10 @@ PATH: \(path)
             }
             if let body = data {
                 output += String(data: body, encoding: .utf8) ?? ""
-                output += "\n - - - - - - - - - -  END RESPONSE - - - - - - - - - - \n"
+                
             }
             if let error {
                 output += error.localizedDescription
-                output += "\n - - - - - - - - - -  END ERROR - - - - - - - - - - \n"
             }
             return output
         }()
