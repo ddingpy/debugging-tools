@@ -1,9 +1,9 @@
 import Testing
 import Foundation
-@testable import ddinglog
+@testable import LLL
 
-@Suite("DdingLog URLSession Tests")
-struct DdingLogTests {
+@Suite("LLL Tests")
+struct LLLTests {
 
     @Test("Test for test")
     func testExample() throws {

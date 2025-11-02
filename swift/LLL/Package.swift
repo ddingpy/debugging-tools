@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "ddinglog",
+    name: "LLL",
     platforms: [
         .iOS(.v17),
         .macOS(.v11),
@@ -15,19 +15,19 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "ddinglog",
-            targets: ["ddinglog"]
+            name: "LLL",
+            targets: ["LLL"]
         ),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "ddinglog"
+            name: "LLL"
         ),
         .testTarget(
-            name: "ddinglogTests",
-            dependencies: ["ddinglog"]
+            name: "LLLTests",
+            dependencies: ["LLL"]
         ),
     ]
 )

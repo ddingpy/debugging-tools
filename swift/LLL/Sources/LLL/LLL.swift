@@ -2,10 +2,10 @@ import Foundation
 import os
 import CoreLocation
 
-public enum DdingLog {
+public enum LLL {
     
     private static let subsystem = Bundle.main.bundleIdentifier ?? ""
-    private static let logger = Logger(subsystem: subsystem, category: "ddinglog")
+    private static let logger = Logger(subsystem: subsystem, category: "LLL")
     
     public static func log(_ message: @autoclosure () -> String) {
         let str = message()
@@ -16,7 +16,7 @@ public enum DdingLog {
         
         let str = message()
         
-        guard let url = URL(string: "https://www.qfqu.com/logf/log/test/ddinglog/0") else {
+        guard let url = URL(string: "https://www.qfqu.com/logf/log/test/LLL/0") else {
             fatalError("Invalid URL.")
         }
 

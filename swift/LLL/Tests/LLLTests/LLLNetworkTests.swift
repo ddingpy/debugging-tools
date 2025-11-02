@@ -1,9 +1,9 @@
 import Testing
 import Foundation
-@testable import ddinglog
+@testable import LLL
 
-@Suite("DdingLog Network Integration Tests")
-struct DdingLogNetworkTests {
+@Suite("LLL Network Integration Tests")
+struct LLLNetworkTests {
     
     @Test("Test URLSession data task creation and execution")
     func testURLSessionIntegration() async throws {
@@ -28,11 +28,11 @@ struct DdingLogNetworkTests {
         // Perform the actual network request
         do {
             
-            DdingLog.network(request: request, taskid: request.hashValue)
+            LLL.network(request: request, taskid: request.hashValue)
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            DdingLog.network(response: response, data: data, error: nil, taskid: request.hashValue)
+            LLL.network(response: response, data: data, error: nil, taskid: request.hashValue)
             
             // Verify response
             #expect(response is HTTPURLResponse)
@@ -55,7 +55,7 @@ struct DdingLogNetworkTests {
             // In a real app, you might want to handle this differently
             print("Network test skipped due to connectivity: \(error)")
             
-            DdingLog.network(response: nil, data: nil, error: error as NSError, taskid: request.hashValue)
+            LLL.network(response: nil, data: nil, error: error as NSError, taskid: request.hashValue)
         }
     }
     
@@ -111,7 +111,7 @@ struct DdingLogNetworkTests {
             for (index, request) in requests.enumerated() {
                 group.addTask {
                     do {
-                        DdingLog.network(request: request, taskid: index)
+                        LLL.network(request: request, taskid: index)
                         let result = try await URLSession.shared.data(for: request)
                         return (index, .success(result))
                     } catch {
@@ -128,9 +128,9 @@ struct DdingLogNetworkTests {
                 // Handle the Result type properly
                 switch result {
                 case .success((let data, let response)):
-                    DdingLog.network(response: response, data: data, error: nil, taskid: index)
+                    LLL.network(response: response, data: data, error: nil, taskid: index)
                 case .failure(let error):
-                    DdingLog.network(response: nil, data: nil, error: error, taskid: index)
+                    LLL.network(response: nil, data: nil, error: error, taskid: index)
                 }
             }
             
@@ -156,16 +156,16 @@ struct DdingLogNetworkTests {
         request.timeoutInterval = 1.0 // 1 second timeout for a 5 second delay
         
         do {
-            DdingLog.network(request: request, taskid: request.hashValue)
+            LLL.network(request: request, taskid: request.hashValue)
             let _ = try await URLSession.shared.data(for: request)
-            DdingLog.network(response: nil, data: nil, error: nil, taskid: request.hashValue)
+            LLL.network(response: nil, data: nil, error: nil, taskid: request.hashValue)
             // If this succeeds, the test might be running too fast or the server responded quickly
             // This is not necessarily a failure
         } catch {
             // We expect a timeout error
             let nsError = error as NSError
             
-            DdingLog.network(response: nil, data: nil, error: error, taskid: request.hashValue)
+            LLL.network(response: nil, data: nil, error: error, taskid: request.hashValue)
             
             #expect(nsError.domain == NSURLErrorDomain)
             #expect(nsError.code == NSURLErrorTimedOut || nsError.code == NSURLErrorCannotConnectToHost)
