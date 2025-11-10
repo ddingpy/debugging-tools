@@ -8,6 +8,10 @@ public enum LLL {
     static let subsystem = Bundle.main.bundleIdentifier ?? ""
     static let logger = Logger(subsystem: subsystem, category: "LLL")
     
+    static let app      = Logger(subsystem: subsystem, category: "app")
+    static let network  = Logger(subsystem: subsystem, category: "network")
+    static let storage  = Logger(subsystem: subsystem, category: "storage")
+    
     public static func log(_ message: @autoclosure () -> String) {
         let str = message()
         logger.log("\(str)")
