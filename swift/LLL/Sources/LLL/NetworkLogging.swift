@@ -1,41 +1,80 @@
 import Foundation
 
-extension DateFormatter {
-    static let iso8601WithMilliseconds: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-        formatter.timeZone = TimeZone(abbreviation: "UTC")
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
+extension LLL {
+    
+    public static func debug(
+        request: URLRequest,
+        response: URLResponse?,
+        data: Data?,
+        error: Error?,
+        startTime: CFAbsoluteTime = CFAbsoluteTimeGetCurrent()
+    ) {
+        let log = network(request: request, response: response, data: data, error: error, startTime: startTime)
+        LLL.debug("\(log)")
+    }
+    
+    public static func info(
+        request: URLRequest,
+        response: URLResponse?,
+        data: Data?,
+        error: Error?,
+        startTime: CFAbsoluteTime = CFAbsoluteTimeGetCurrent()
+    ) {
+        let log = network(request: request, response: response, data: data, error: error, startTime: startTime)
+        LLL.info("\(log)")
+    }
+    
+    static func network(
+        request: URLRequest,
+        response: URLResponse?,
+        data: Data?,
+        error: Error?,
+        startTime: CFAbsoluteTime
+    ) -> String {
+        
+        var log = String(request: request, index: LockedAccumulator.shared.next())
+        
+        let datetimestring = DateFormatter.iso8601WithMilliseconds.string(from: Date(timeIntervalSinceReferenceDate: startTime))
+        
+        log += "\n - - - - - - - - - -  END REQUEST (\(datetimestring)) - - - - - - - - - - \n"
+        
+        
+        let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
+        
+        if let response {
+            let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
+            log += String(error: nil, response: response, data: data)
+            log += "\n - - - - - - - - - -  END RESPONSE (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
+        }
+        
+        if let error {
+            log += String(error: error, response: nil, elapsedTime: elapsedTime)
+            log += "\n - - - - - - - - - -  END ERROR (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
+        }
+        
+        return log
+    }
 }
 
+#if DEBUG
 extension URLSession {
     
     public func dataLLL(
         for req: URLRequest
     ) async throws -> (Data, URLResponse) {
         
-        var log = getString(request: req, index: LockedAccumulator.shared.next())
-        
         let startTime = CFAbsoluteTimeGetCurrent()
-        let datetimestring = DateFormatter.iso8601WithMilliseconds.string(from: Date(timeIntervalSinceReferenceDate: startTime))
-        
-        log += "\n - - - - - - - - - -  END REQUEST (\(datetimestring)) - - - - - - - - - - \n"
         
         do {
             let (data, res) = try await self.data(for: req)
-            let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
-            log += getString(error: nil, response: res, data: data)
-            log += "\n - - - - - - - - - -  END RESPONSE (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
             
-            LLL.log(log)
+            let log = LLL.network(request: req, response: res, data: data, error: nil, startTime: startTime)
+            LLL.debug(log)
+            
             return (data, res)
         } catch {
-            let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
-            log += getString(error: error, response: nil, elapsedTime: elapsedTime)
-            log += "\n - - - - - - - - - -  END ERROR (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
-            LLL.log(log)
+            let log = LLL.network(request: req, response: nil, data: nil, error: error, startTime: startTime)
+            LLL.debug(log)
             throw error
         }
     }
@@ -54,42 +93,34 @@ extension URLSession {
         completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void
     ) -> URLSessionDataTask {
         
-        var log = getString(request: request, index: LockedAccumulator.shared.next())
-        
         let startTime = CFAbsoluteTimeGetCurrent()
-        let datetimestring = DateFormatter.iso8601WithMilliseconds.string(from: Date(timeIntervalSinceReferenceDate: startTime))
-        
-        log += "\n - - - - - - - - - -  END REQUEST (\(datetimestring)) - - - - - - - - - - \n"
         
         return self.dataTask(
             with: request,
-            completionHandler: { [weak self, log] (data: Data?, response: URLResponse?, error: (any Error)?) in
+            completionHandler: { (data: Data?, response: URLResponse?, error: (any Error)?) in
                 
-                guard let wself = self else {
-                    return
-                }
-                
-                var finalLog = log
-                
-                let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
-                
-                if let response {
-                    let elapsedTime = CFAbsoluteTimeGetCurrent() - startTime
-                    finalLog += wself.getString(error: nil, response: response, data: data)
-                    finalLog += "\n - - - - - - - - - -  END RESPONSE (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
-                }
-                
-                if let error {
-                    finalLog += wself.getString(error: error, response: nil, elapsedTime: elapsedTime)
-                    finalLog += "\n - - - - - - - - - -  END ERROR (\(String(format: "%.3f", elapsedTime))s) - - - - - - - - - - \n"
-                }
-                LLL.log(finalLog)
+                let log = LLL.network(request: request, response: response, data: data, error: error, startTime: startTime)
+                LLL.debug(log)
                 
                 completionHandler(data, response, error)
             })
     }
+}
+#endif
+
+extension DateFormatter {
+    static let iso8601WithMilliseconds: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        formatter.timeZone = TimeZone(abbreviation: "UTC")
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+}
+
+extension String {
     
-    private func getString(request: URLRequest, index: Int) -> String {
+    init(request: URLRequest, index: Int) {
         let message = { () -> String in
             let urlAsString = request.url?.absoluteString ?? ""
             let urlComponents = URLComponents(string: urlAsString)
@@ -119,10 +150,10 @@ PATH: \(path)
             return output
         }()
         
-        return message
+        self = message
     }
     
-    private func getString(error: Error?, response: URLResponse?, data: Data? = nil, elapsedTime: TimeInterval? = nil) -> String {
+    init(error: Error?, response: URLResponse?, data: Data? = nil, elapsedTime: TimeInterval? = nil) {
         let message = { () -> String in
             var output = ""
             
@@ -148,6 +179,6 @@ PATH: \(path)
             return output
         }()
         
-        return message
+        self = message
     }
 }

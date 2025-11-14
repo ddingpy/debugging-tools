@@ -2,15 +2,26 @@ import Foundation
 import os
 import CoreLocation
 
-
 public enum LLL {
     
-    static let subsystem = Bundle.main.bundleIdentifier ?? ""
-    static let logger = Logger(subsystem: subsystem, category: "LLL")
+    static let subsystem = Bundle.main.bundleIdentifier ?? "LLL"
+    static let category = "LLL"
+    static let logger = Logger(subsystem: subsystem, category: category)
     
-    public static func log(_ message: @autoclosure () -> String) {
+    public static func debug(_ message: @autoclosure () -> String) {
+        guard OSLog(subsystem: subsystem, category: category).isEnabled(type: .debug) else {
+            return
+        }
         let str = message()
-        logger.log("\(str)")
+        logger.debug("\(str)")
+    }
+    
+    public static func info(_ message: @autoclosure () -> String) {
+        guard OSLog(subsystem: subsystem, category: category).isEnabled(type: .info) else {
+            return
+        }
+        let str = message()
+        logger.info("\(str)")
     }
     
     public static func logf(_ message: @autoclosure () -> String) {
